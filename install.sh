@@ -90,7 +90,7 @@ centos()
 
 	# Install dependencies:
 	yum -y install ruby193 unzip curl scl-utils httpd-tools puppet bind bind-utils augeas
-	yum -y install activemq activemq-client
+	#yum -y install activemq activemq-client
 
 
 	# Configure SELinux settings. This is not necessary for all hosts, but
