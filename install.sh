@@ -46,6 +46,7 @@ fedora()
 	if [ $releasenum == "20" ]; then
 		sudo yum -y remove firewalld # Required removal for Fedora 20.
 		sudo yum -y install --releasever=19 --nogpg ruby rubygem-rails # Need Rails 3
+		echo -e "exclude=ruby*" >> /etc/yum.conf # Blacklist Ruby updates.
 	elif [ $releasenum == "19" ]; then
 		sudo yum -y install ruby rubygem-rails
 	else
