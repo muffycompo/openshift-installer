@@ -14,7 +14,6 @@
 # license at <http://www.gnu.org/licenses/>. 
 ###############################################################################
 
-
 # Check if the user is running as root.
 if [[ $EUID -ne 0 ]]; then
 	echo "Failing. This script must be run as 'root'. Please try again."
@@ -22,7 +21,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 
-# Get the desried hostname from the user.
+# Get the desired hostname from the user.
 hostname_input()
 {
 	echo -e -n "\nPlease enter the hostname that you wish to use.  "
@@ -46,18 +45,18 @@ fedora()
 	releasenum=`cat /etc/fedora-release | awk {'print $3'}`
 	if [ $releasenum == "20" ]; then
 		sudo yum -y remove firewalld # Required removal for Fedora 20.
+		sudo yum -y install --releasever=19 --nogpg ruby rubygem-rails # Need Rails 3
 	elif [ $releasenum == "19" ]; then
-		: #NOP
+		sudo yum -y install ruby rubygem-rails
 	else
 		echo "You're running an incompatible version of Fedora."
 		exit 1
 	fi
-
 	# Update the OS:
 	yum -y update
 
 	# Install dependencies:
-	yum -y install ruby unzip augeas httpd-tools puppet bind
+	yum -y install unzip augeas httpd-tools puppet bind
 
 	# Fix SELinux settings so they are enforcing instead of disabled.
 
@@ -172,6 +171,9 @@ stage2()
 	reboot
 	exit 0
 }
+
+#### Main Routine #####
+
 # First run
 if [ ! -f ".LOCK_SLE" ]; then
 	# Initial info block.
