@@ -1,18 +1,18 @@
 #!/bin/bash
-############################################################################
-# OpenShift Easy Install Script - This script makes it incredibly easy to deploy
-# OpenShift Origin on your server by removing the need to install dependencies
-# manually or perform any preliminary configurations on your server. It is safest
-# to use this install script on a clean install of your desired distro.
-#
-#  See the README for more details.
-#
-#
-# (C) Copyright 2014 Ryan Leaf. This program is licensed under the GNU General
-# Public License (GPLv3). You are bound by the terms of the license. You may find
-# a copy of the license included in this repository or you may find a copy of the
-# license at <http://www.gnu.org/licenses/>. 
-###############################################################################
+###################################################################################
+# OpenShift Easy Install Script - This script makes it incredibly easy to deploy  #
+# OpenShift Origin on your server by removing the need to install dependencies    #
+# manually or perform any preliminary configurations on your server. It is safest # 
+# to use this install script on a clean install of your desired distro.           #
+#                                                                                 #
+#  See the README for more details.                                               #
+#                                                                                 #
+#                                                                                 #
+# (C) Copyright 2014 Ryan Leaf. This program is licensed under the GNU General    #
+# Public License (GPLv3). You are bound by the terms of the license. You may find #
+# a copy of the license included in this repository or you may find a copy of the #
+# license at <http://www.gnu.org/licenses/>.                                      #
+###################################################################################
 
 # Check if the user is running as root.
 if [[ $EUID -ne 0 ]]; then
@@ -41,23 +41,19 @@ hostname_input()
 ############# DISTROS #############
 fedora()
 {
-	# Check version of Fedora. If not 19 or 20, then quit.
+	# Checks if the user is running Fedora 19.
 	releasenum=`cat /etc/fedora-release | awk {'print $3'}`
-	if [ $releasenum == "20" ]; then
-		sudo yum -y remove firewalld # Required removal for Fedora 20.
-		sudo yum -y install --releasever=19 --nogpg ruby rubygem-rails # Need Rails 3
-		echo -e "exclude=ruby*" >> /etc/yum.conf # Blacklist Ruby updates.
-	elif [ $releasenum == "19" ]; then
-		sudo yum -y install ruby rubygem-rails
+	if [ $releasenum == "19"]; then
+		:
 	else
-		echo "You're running an incompatible version of Fedora."
+		echo "Fedora " $releasenum "is not currently supported."
 		exit 1
 	fi
 	# Update the OS:
 	yum -y update
 
 	# Install dependencies:
-	yum -y install unzip augeas httpd-tools puppet bind
+	yum -y install unzip augeas httpd-tools puppet bind ruby193
 
 	# Fix SELinux settings so they are enforcing instead of disabled.
 
@@ -70,7 +66,6 @@ fedora()
 
 	echo "Successfully prepped your Fedora system."
 }
-
 centos()
 {
 	# Check version of CentOS.
@@ -111,45 +106,23 @@ redhat()
 	echo "You're running RHEL, but I can't do a thing."
 }
 
-debian()
-{
-	# Update repos
-	apt-get update
-
-	# Install updates
-	apt-get dist-upgrade -y
-
-	# Install dependencies:
-	apt-get install ruby unzip curl scl-utils httpd-tools puppet bind bind-utils augeas
-	apt-get install activemq activemq-client
-
-	# NEED TO DO SOMETHING TO GET SELINUX ENABLED AND CONFIGURED.
-
-	# Configure SELinux settings.
-	echo "You're running Debian..."
-}
-
 distro()
 {
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
-	if [[ $distroname == *"Debian"* ]]; then
-		echo "Looks like you're running Debian."
-	elif [[ $distroname == *"Fedora"* ]]; then
-		echo -e "Looks like you're running Fedora.\n"
-		fedora
-	elif [[ $distroname == *"CentOS"* ]]; then
-		echo "Looks like you're running CentOS."
-		centos
-	elif [[ $distroname == *"Red Hat"* ]]; then
+
+	if [[ $distroname == *"Red Hat"* ]]; then
 		echo "Looks like you're running Red Hat."
-	else
-		echo "Either you're running an incompatible distro or you don't have a release file."
+	elif [[ $distroname == *"Fedora"* ]]; then
+		echo "Looks like you're running Fedora."
+	elif [[ $distroname == *"CentOS"* ]]; then
+		echo "Looks like you're running CentOS"
 	fi
+
 
 }
 ######### Stage 1 ############
-stage1()
+preflight()
 {
 	distro
 
@@ -162,10 +135,10 @@ stage1()
 }
 
 ######### Stage 2 ###########
-stage2()
+origin_install()
 {
-	echo "PHASE 2: Now installing OpenShift. "
-	sh <(curl -s https://install.openshift.com/)
+	echo "PHASE 2: Now installing OpenShift Origin. "
+	sh <(curl -s https://install.op-enshift.com/)
 
 	rm -Rf .LOCK_SLE
 	echo "Script is finished."
@@ -173,18 +146,61 @@ stage2()
 	exit 0
 }
 
+enterprise_install()
+{
+	echo "Please enter your username: "
+	read $username
+	echo "The type of subscription you have: "
+	read $sub_type
+	echo "Please enter any options you'd like to use: "
+	read $installoptions
+
+	sh <(curl -s http://install.openshift.com/ose) -e -s $sub_type -u $username $installoptions
+	rm -Rf .LOCK_SLE
+	echo "Finishing."
+	reboot
+	exit 0
+
+
+}
+
 #### Main Routine #####
 
 # First run
 if [ ! -f ".LOCK_SLE" ]; then
-	# Initial info block.
-	echo "Welcome to the OpenShift Origin install script for Fedora. This script is known to work on Fedora 19 and 20. "
-	echo "During this install, your computer will reboot. Please hit Ctrl+C if you're computer is not ready to be restarted. "
-	echo "After rebooting, you will need to relaunch this script. I will ask you a few questions to help you install Origin on your server."
-	hostname_input
+	echo "Welcome to the OpenShift Quick Installer. You will be asked a series of questions during this installation."
+	echo "For best results, we highly recommend you install this on a fresh install of Red Hat Enterprise Linux or CentOS."
+	echo "During the installation process, your computer will restart. You will need to rerun this script (by typing './install.sh' as root,"
+	echo "once your computer restarts. Ready to begin?"
+	read "Press enter to continue..."
+
+	stage1
 fi
 
 # Second run
 if [ -f ".LOCK_SLE" ]; then
-	stage2
+	echo "Welcome back to the OpenShift Quick Installer. Before continuing, you will need to tell me whether you're installing Origin or Enterprise."
+	echo -e ""
+	PS3='Please enter the # for your choice: '
+	options=("Install Origin" "Install Enterprise" "Quit")
+	select opt in "${options[@]}"
+
+	do
+		case "$REPLY" in
+			1)
+				echo "Installing Origin."
+				origin_install
+				;;
+			2)
+				echo "Installing Enterprise"
+				enterprise_install
+				;;
+			3)
+				echo "Quitting."
+				break;;
+			*)
+			 echo "Invalid selection."
+	 	esac
+	 done
+
 fi
