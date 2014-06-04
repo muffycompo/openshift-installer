@@ -20,6 +20,7 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
+selinux_reboot_flag="0" # This flag is only activated if the script had to update SELinux to use enforcing mode.
 
 # Get the desired hostname from the user.
 hostname_input()
@@ -43,10 +44,10 @@ fedora()
 {
 	# Checks if the user is running Fedora 19.
 	releasenum=`cat /etc/fedora-release | awk {'print $3'}`
-	if [ $releasenum == "19"]; then
+	if [ $releasenum == "19" ]; then
 		:
 	else
-		echo "Fedora " $releasenum "is not currently supported."
+		echo "ERROR: Fedora" $releasenum "is not currently supported."
 		exit 1
 	fi
 	# Update the OS:
@@ -57,8 +58,12 @@ fedora()
 
 	# Fix SELinux settings so they are enforcing instead of disabled.
 
-	echo > /etc/selinux/config  # Clear the file.
-	echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > /etc/selinux/config # Enable enforcing.
+	path_to_selinux = "/etc/selinux/config"
+	if [ ! grep -q "enforcing" $path_to_selinux]; then
+		echo > $path_to_selinux  # Clear the file.
+		echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > $path_to_selinux # Enable enforcing.
+		$selinux_reboot_flag = 1 # Make sure the system reboots.
+	fi
 
 	# Change the user's hostname.
 	echo $user_hostname > /etc/hostname
@@ -110,11 +115,10 @@ distro()
 {
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
-
 	if [[ $distroname == *"Red Hat"* ]]; then
 		echo "Looks like you're running Red Hat."
 	elif [[ $distroname == *"Fedora"* ]]; then
-		echo "Looks like you're running Fedora."
+		fedora
 	elif [[ $distroname == *"CentOS"* ]]; then
 		echo "Looks like you're running CentOS"
 	fi
@@ -124,13 +128,14 @@ distro()
 ######### Stage 1 ############
 preflight()
 {
-	distro
-
-	# Finishing
-	echo "Done with phase 1. About to reboot."
+	distro # Check the distro and run preconfiguration on that distro.
 
 	touch .LOCK_SLE # Create a lock.
-	reboot
+	if [ selinux_reboot_flag == 1 ]; then
+		reboot # Only if the SELinux config file needed to be updated.
+	elif [ selinux_reboot_flag == 0 ]; then
+		installer_menu # Typical case.
+	fi
 	exit 0 # Make sure this script doesn't go through 
 }
 
@@ -160,25 +165,10 @@ enterprise_install()
 	echo "Finishing."
 	reboot
 	exit 0
-
-
 }
 
-#### Main Routine #####
-
-# First run
-if [ ! -f ".LOCK_SLE" ]; then
-	echo "Welcome to the OpenShift Quick Installer. You will be asked a series of questions during this installation."
-	echo "For best results, we highly recommend you install this on a fresh install of Red Hat Enterprise Linux or CentOS."
-	echo "During the installation process, your computer will restart. You will need to rerun this script (by typing './install.sh' as root,"
-	echo "once your computer restarts. Ready to begin?"
-	read "Press enter to continue..."
-
-	stage1
-fi
-
-# Second run
-if [ -f ".LOCK_SLE" ]; then
+installer_menu()
+{
 	echo "Welcome back to the OpenShift Quick Installer. Before continuing, you will need to tell me whether you're installing Origin or Enterprise."
 	echo -e ""
 	PS3='Please enter the # for your choice: '
@@ -197,10 +187,31 @@ if [ -f ".LOCK_SLE" ]; then
 				;;
 			3)
 				echo "Quitting."
+				rm -Rf .LOCK_SLE
 				break;;
 			*)
 			 echo "Invalid selection."
 	 	esac
 	 done
 
+
+}
+
+#### Main Routine #####
+
+# First run
+clear
+if [ ! -f ".LOCK_SLE" ]; then
+	printf "Welcome to the OpenShift Quick Installer. You will be asked a series of questions during this installation. "
+	printf "For best results, we highly recommend you install this on a fresh install of Red Hat Enterprise Linux or CentOS. "
+	printf "\n\nDuring the installation process, your computer may restart. You will need to rerun this script (by typing './install.sh' as root, "
+	printf "once your computer restarts. Ready to begin?\n\n"
+	read -p "Press enter to continue..."
+
+	preflight
+fi
+
+# Second run
+if [ -f ".LOCK_SLE" ]; then
+	installer_menu
 fi
