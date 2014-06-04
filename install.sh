@@ -54,11 +54,12 @@ fedora()
 	yum -y update
 
 	# Install dependencies:
-	yum -y install unzip augeas httpd-tools puppet bind ruby193
+	yum -y install unzip augeas httpd-tools puppet bind ruby
 
 	# Fix SELinux settings so they are enforcing instead of disabled.
 
-	path_to_selinux = "/etc/selinux/config"
+	path_to_selinux="/etc/selinux/config"
+	
 	if [ ! grep -q "enforcing" $path_to_selinux ]; then
 		echo > $path_to_selinux  # Clear the file.
 		echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > $path_to_selinux # Enable enforcing.
