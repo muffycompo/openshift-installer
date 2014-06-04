@@ -65,7 +65,7 @@ fedora()
 	else
 		echo > $path_to_selinux  # Clear the file.
 		echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > $path_to_selinux # Enable enforcing.
-		$selinux_reboot_flag = 1 # Make sure the system reboots.
+		$selinux_reboot_flag="1" # Make sure the system reboots.
 	fi
 
 	# Change the user's hostname.
