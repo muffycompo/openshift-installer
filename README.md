@@ -2,7 +2,7 @@ openshift-installer
 ===================
 Welcome to the OpenShift Easy Install Script. This script takes the hassle out of installing OpenShift by handling the preconfiguration and dependency installation for you. To run this script, all you need to do is enter the following into your shell prompt:
 
-```curl https://raw.githubusercontent.com/rjleaf/openshift-installer/master/install.sh && chmod +x install.sh && sudo ./install.sh```
+```curl https://raw.githubusercontent.com/rjleaf/openshift-installer/master/install.sh > install.sh && chmod +x install.sh && sudo ./install.sh```
 
 Once you run that command, you will be asked for some information about your server (currently just your desired hostname). Then, we'll take care of configuring your server. At some point, the script will finish and your server will reboot (mainly to get SELinux in the correct state).
 
