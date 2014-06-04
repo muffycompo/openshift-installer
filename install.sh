@@ -136,17 +136,18 @@ preflight()
 	touch .LOCK_SLE # Create a lock.
 	if [ $selinux_reboot_flag == "1" ]; then
 		reboot # Only if the SELinux config file needed to be updated.
+		exit 1
 	elif [ $selinux_reboot_flag == "0" ]; then
 		installer_menu # Typical case.
 	fi
-	exit 0 # Make sure this script doesn't go through 
+	# Make sure this script doesn't go through 
 }
 
 ######### Stage 2 ###########
 origin_install()
 {
 	echo "PHASE 2: Now installing OpenShift Origin. "
-	sh <(curl -s https://install.op-enshift.com/)
+	sh <(curl -s https://install.openshift.com/)
 
 	rm -Rf .LOCK_SLE
 	echo "Script is finished."
