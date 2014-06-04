@@ -134,9 +134,9 @@ preflight()
 	distro # Check the distro and run preconfiguration on that distro.
 
 	touch .LOCK_SLE # Create a lock.
-	if [ selinux_reboot_flag == 1 ]; then
+	if [ $selinux_reboot_flag == "1" ]; then
 		reboot # Only if the SELinux config file needed to be updated.
-	elif [ selinux_reboot_flag == 0 ]; then
+	elif [ $selinux_reboot_flag == "0" ]; then
 		installer_menu # Typical case.
 	fi
 	exit 0 # Make sure this script doesn't go through 
