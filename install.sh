@@ -77,7 +77,7 @@ fedora()
 centos()
 {
 	# Check version of CentOS.
-
+	releasenum=`cat /etc/*-release* | awk {'print $3'}`
 	# Add OpenShift repos.
 	touch /etc/yum.repos.d/openshift-origin-deps.repo
 	touch /etc/yum.repos.d/openshift-origin.repo
@@ -85,7 +85,7 @@ centos()
 	echo -e "[openshift-origin]\nname=openshift-origin\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/packages/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin.repo
 
 	# Add EPEL repos.
-	sudo yum -y install http://download.fedoraproject.org/pub/epel/5/x86_64/epel-release-5-4.noarch.rpm
+	sudo yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
 
 
 	# Update the OS:
@@ -99,7 +99,7 @@ centos()
 	# Configure SELinux settings. This is not necessary for all hosts, but
 	# some hosts disable SELinux by default.
 
-	echo > /etc/selinux/config # Clear the config file.
+	echo > /etc/selinux/config # Clear the config fiel.
 	echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > /etc/selinux/config # Enable enforcing.
 
 	# Change the user's hostname.
@@ -111,7 +111,16 @@ centos()
 
 redhat()
 {
-	echo "You're running RHEL, but I can't do a thing."
+	# Check the version of RHEL.
+	releasenum=`cat /etc/*-release | awk {'print $7'}`
+
+	if [[ releasenum == "6.5" ]]; then
+		echo "Installing on RHEL 6.5"
+	elif [[ releasenum == "7" ]]; then
+		echo "Installing on RHEL 7"
+	else
+		echo "Error: I cannot install on RHEL " releasenum ", please update to RHEL 6.5 or 7." 
+	fi
 }
 
 distro()
