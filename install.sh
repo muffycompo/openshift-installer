@@ -130,7 +130,7 @@ distro()
 {
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
-	if [[ $distroname == *"Red"* ]]; then
+	if [ -f "/etc/redhat-release" ]; then
 		echo "Looks like you're running Red Hat."
 		redhat
 	elif [[ $distroname == *"Fedora"* ]]; then
