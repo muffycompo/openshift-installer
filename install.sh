@@ -114,12 +114,12 @@ redhat()
 	# Check the version of RHEL.
 	releasenum=`cat /etc/*-release | awk {'print $7'}`
 
-	if [[ releasenum == "6.5" ]]; then
+	if [[ $releasenum == "6.5" ]]; then
 		echo "Installing on RHEL 6.5"
 		yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
 		yum -y update
 		yum -y install ruby193
-	elif [[ releasenum == "7" ]]; then
+	elif [[ $releasenum == "7" ]]; then
 		echo "Installing on RHEL 7"
 	else
 		echo "Error: I cannot install on RHEL " releasenum ", please update to RHEL 6.5 or 7." 
