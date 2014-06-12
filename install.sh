@@ -112,7 +112,7 @@ centos()
 redhat()
 {
 	# Check the version of RHEL.
-	releasenum=`cat /etc/*-release | awk {'print $7'}`
+	releasenum=`cat /etc/redhat-release | awk {'print $7'}`
 
 	if [[ $releasenum == "6.5" ]]; then
 		echo "Installing on RHEL 6.5"
