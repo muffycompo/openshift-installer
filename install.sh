@@ -132,6 +132,7 @@ distro()
 
 	if [[ $distroname == *"Red Hat"* ]]; then
 		echo "Looks like you're running Red Hat."
+		redhat
 	elif [[ $distroname == *"Fedora"* ]]; then
 		fedora
 	elif [[ $distroname == *"CentOS"* ]]; then
