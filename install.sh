@@ -99,7 +99,7 @@ centos()
 	# Configure SELinux settings. This is not necessary for all hosts, but
 	# some hosts disable SELinux by default.
 
-	echo > /etc/selinux/config # Clear the config fiel.
+	echo > /etc/selinux/config # Clear the config file.
 	echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > /etc/selinux/config # Enable enforcing.
 
 	# Change the user's hostname.
@@ -119,8 +119,23 @@ redhat()
 		yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
 		yum -y update
 		yum -y install ruby193 ruby puppet augeas bind httpd-tools curl
+
+
+		# For some hosts, we need to make sure SELinux is properly configured.
+		if [ `getenforce` == "Enforcing"]; then
+			echo "SELinux is properly configured."
+			:
+		else
+			echo > /etc/selinux/config # Clear the config file.
+			echo -e "SELINUX=enforcing\nSELINUXTYPE=targeted" > /etc/selinux/config # Enable enforcing.
+		fi
+
+		# Update the hostname.
+		echo $user_hostname > /etc/hostname
+		hostname $user_hostname
 	elif [[ $releasenum == *"7"* ]]; then
 		echo "Installing on RHEL 7"
+		yum -y update
 	else
 		echo "Error: I cannot install on RHEL " $rh_releasenum ", please update to RHEL 6.5 or 7." 
 	fi
@@ -177,7 +192,7 @@ enterprise_install()
 	echo "Please enter any options you'd like to use: "
 	read $installoptions
 
-	sh <(curl -s http://install.openshift.com/ose) -e -s $sub_type -u $username $installoptions
+	sh <(curl -s https://install.openshift.com/ose) -e -s $sub_type -u $username $installoptions
 	rm -Rf .LOCK_SLE
 	echo "Finishing."
 	reboot
@@ -186,6 +201,7 @@ enterprise_install()
 
 installer_menu()
 {
+	clear
 	echo "Welcome back to the OpenShift Quick Installer. Before continuing, you will need to tell me whether you're installing Origin or Enterprise."
 	echo -e ""
 	PS3='Please enter the # for your choice: '
