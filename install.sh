@@ -164,7 +164,7 @@ origin_install()
 
 	rm -Rf .LOCK_SLE
 	echo "Script is finished."
-	reboot
+	#reboot
 	exit 0
 }
 
