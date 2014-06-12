@@ -92,7 +92,7 @@ centos()
 	yum -y update
 
 	# Install dependencies:
-	yum -y install ruby193 unzip curl scl-utils httpd-tools puppet bind bind-utils augeas
+	yum -y install ruby ruby193 unzip curl scl-utils httpd-tools puppet bind bind-utils augeas
 
 	# Configure SELinux settings. This is not necessary for all hosts, but
 	# some hosts disable SELinux by default.
@@ -144,7 +144,7 @@ distro()
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
 	if [ -f "/etc/redhat-release" ]; then
-		if [ `cat /etc/redhat-release | awk 'NR==1{print $1:2}'`]; then
+		if [ `cat /etc/redhat-release | awk 'NR==1{print $1 " " $2}'` == "Red Hat"]; then
 			echo "Looks like you're running Red Hat."
 			redhat
 		elif [[ $distroname == *"CentOS"* ]]; then
@@ -188,14 +188,7 @@ origin_install()
 
 enterprise_install()
 {
-	echo "Please enter your username: "
-	read $username
-	echo "The type of subscription you have: "
-	read $sub_type
-	echo "Please enter any options you'd like to use: "
-	read $installoptions
-
-	sh <(curl -s https://install.openshift.com/ose) -e -s $sub_type -u $username $installoptions
+	sh <(curl -s https://install.openshift.com/ose) -e
 	rm -Rf .LOCK_SLE
 	echo "Finishing."
 	reboot
