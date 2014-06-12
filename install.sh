@@ -144,13 +144,17 @@ distro()
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
 	if [ -f "/etc/redhat-release" ]; then
-		echo "Looks like you're running Red Hat."
-		redhat
-	elif [[ $distroname == *"Fedora"* ]]; then
-		fedora
-	elif [[ $distroname == *"CentOS"* ]]; then
-		echo "Looks like you're running CentOS"
-		centos
+		if [ `cat /etc/redhat-release | awk 'NR==1{print $1:2}'`]; then
+			echo "Looks like you're running Red Hat."
+			redhat
+		elif [[ $distroname == *"CentOS"* ]]; then
+			echo "Looks like you're running CentOS"
+			centos
+		elif [[ $distroname == *"Fedora"* ]]; then
+			fedora
+		fi
+	else
+		echo "Unsupported Linux distribution. Please use Red Hat Enterprise Linux, CentOS, or Fedora."
 	fi
 
 
