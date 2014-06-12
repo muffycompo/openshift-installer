@@ -112,9 +112,9 @@ centos()
 redhat()
 {
 	# Check the version of RHEL.
-	releasenum=`cat /etc/redhat-release | awk {'print $7'}`
+	rh_releasenum=`cat /etc/redhat-release | awk {'print $7'}`
 
-	if [[ $releasenum == "6.5" ]]; then
+	if [[ $rh_releasenum == "6.5" ]]; then
 		echo "Installing on RHEL 6.5"
 		yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
 		yum -y update
