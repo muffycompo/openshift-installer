@@ -144,7 +144,7 @@ distro()
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
 	if [ -f "/etc/redhat-release" ]; then
-		if [ `cat /etc/redhat-release | awk 'NR==1{print $1 " " $2}'` == "Red Hat"]; then
+		if [[ `cat /etc/redhat-release | awk 'NR==1{print $1 " " $2}'` == "Red Hat" ]]; then
 			echo "Looks like you're running Red Hat."
 			redhat
 		elif [[ $distroname == *"CentOS"* ]]; then
