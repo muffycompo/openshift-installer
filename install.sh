@@ -22,22 +22,6 @@ fi
 
 selinux_reboot_flag="0" # This flag is only activated if the script had to update SELinux to use enforcing mode.
 
-# Get the desired hostname from the user.
-hostname_input()
-{
-	echo -e -n "\nPlease enter the hostname that you wish to use.  "
-	read  user_hostname
-	echo -e -n "You chose" $user_hostname "is that correct? [y/n] "
-	read  hostname_bool
-
-	if [ $hostname_bool == "y" ]; then
-		stage1
-	elif [ $hostname_bool == "n" ]; then
-		hostname_input
-	else
-		hostname_input
-	fi
-}
 
 ############# DISTROS #############
 fedora()
@@ -79,10 +63,10 @@ centos()
 	# Check version of CentOS.
 	releasenum=`cat /etc/*-release* | awk {'print $3'}`
 	# Add OpenShift repos.
-	touch /etc/yum.repos.d/openshift-origin-deps.repo
-	touch /etc/yum.repos.d/openshift-origin.repo
-	echo -e "[openshift-origin-dep]\nname=openshift-origin-deps\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/dependencies/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin-deps.repo
-	echo -e "[openshift-origin]\nname=openshift-origin\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/packages/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin.repo
+	#touch /etc/yum.repos.d/openshift-origin-deps.repo
+	#touch /etc/yum.repos.d/openshift-origin.repo
+	#echo -e "[openshift-origin-dep]\nname=openshift-origin-deps\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/dependencies/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin-deps.repo
+	#echo -e "[openshift-origin]\nname=openshift-origin\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/packages/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin.repo
 
 	# Add EPEL repos.
 	sudo yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
@@ -133,14 +117,16 @@ redhat()
 		hostname $user_hostname
 	elif [[ $releasenum == *"7"* ]]; then
 		echo "Installing on RHEL 7"
-		yum -y update
+		echo "Failing: RHEL 7 is currently not supported."
+		exit 1
 	else
-		echo "Error: I cannot install on RHEL " $rh_releasenum ", please update to RHEL 6.5 or 7." 
+		echo "Error: I cannot install on RHEL " $rh_releasenum ", please try the installation on RHEL 6.5." 
 	fi
 }
 
 distro()
 {
+	# Check the distro that the user is running.
 	distroname=`cat /etc/*-release | awk 'NR==1{print $1}'`
 
 	if [ -f "/etc/redhat-release" ]; then
@@ -154,14 +140,15 @@ distro()
 			fedora
 		fi
 	else
+		echo ""
 		echo "Unsupported Linux distribution. Please use Red Hat Enterprise Linux, CentOS, or Fedora."
+		exit 1
 	fi
-
-
 }
 ######### Stage 1 ############
 preflight()
 {
+	# Installs the necessary dependencies to get OpenShift running.
 	distro # Check the distro and run preconfiguration on that distro.
 
 	touch .LOCK_SLE # Create a lock.
@@ -177,17 +164,19 @@ preflight()
 ######### Stage 2 ###########
 origin_install()
 {
+	# If the user chooses Origin, then run the Origin installer.
 	echo "PHASE 2: Now installing OpenShift Origin. "
 	sh <(curl -s https://install.openshift.com/)
 
 	rm -Rf .LOCK_SLE
 	echo "Script is finished."
-	#reboot
+	reboot
 	exit 0
 }
 
 enterprise_install()
 {
+	# If user chooses Enterprise, then run the Enterprise installer.
 	sh <(curl -s https://install.openshift.com/ose) -e
 	rm -Rf .LOCK_SLE
 	echo "Finishing."
@@ -197,6 +186,7 @@ enterprise_install()
 
 installer_menu()
 {
+	# Lets the user choose which version they want to install.
 	clear
 	echo "Welcome back to the OpenShift Quick Installer. Before continuing, you will need to tell me whether you're installing Origin or Enterprise."
 	echo -e ""
@@ -226,6 +216,26 @@ installer_menu()
 
 }
 
+# Get the desired hostname from the user.
+hostname_input()
+{
+	echo -e -n "\nPlease enter the hostname that you wish to use.  "
+	read  user_hostname
+	echo -e -n "You chose" $user_hostname "is that correct? [y/n] "
+	read  hostname_bool
+
+	if [ $hostname_bool == "y" ]; then
+		preflight
+	elif [ $hostname_bool == "n" ]; then
+		hostname_input
+	else
+		hostname_input
+	fi
+}
+
+
+
+
 #### Main Routine #####
 
 # First run
@@ -237,7 +247,7 @@ if [ ! -f ".LOCK_SLE" ]; then
 	printf "once your computer restarts. Ready to begin?\n\n"
 	read -p "Press enter to continue..."
 
-	preflight
+	hostname_input
 fi
 
 # Second run
