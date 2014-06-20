@@ -63,10 +63,10 @@ centos()
 	# Check version of CentOS.
 	releasenum=`cat /etc/*-release* | awk {'print $3'}`
 	# Add OpenShift repos.
-	#touch /etc/yum.repos.d/openshift-origin-deps.repo
-	#touch /etc/yum.repos.d/openshift-origin.repo
-	#echo -e "[openshift-origin-dep]\nname=openshift-origin-deps\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/dependencies/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin-deps.repo
-	#echo -e "[openshift-origin]\nname=openshift-origin\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/packages/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin.repo
+	touch /etc/yum.repos.d/openshift-origin-deps.repo
+	touch /etc/yum.repos.d/openshift-origin.repo
+	echo -e "[openshift-origin-dep]\nname=openshift-origin-deps\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/dependencies/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin-deps.repo
+	echo -e "[openshift-origin]\nname=openshift-origin\nbaseurl=http://mirror.openshift.com/pub/origin-server/release/3/rhel-6/packages/x86_64/\ngpgcheck=0\nenabled=1" > /etc/yum.repos.d/openshift-origin.repo
 
 	# Add EPEL repos.
 	sudo yum -y install http://mirror.metrocast.net/fedora/epel/6/i386/epel-release-6-8.noarch.rpm
@@ -149,9 +149,8 @@ distro()
 preflight()
 {
 	# Installs the necessary dependencies to get OpenShift running.
-	distro # Check the distro and run preconfiguration on that distro.
-
 	touch .LOCK_SLE # Create a lock.
+	distro
 	if [ $selinux_reboot_flag == "1" ]; then
 		reboot # Only if the SELinux config file needed to be updated.
 		exit 1

@@ -9,6 +9,7 @@ Once you run that command, you will be asked for some information about your ser
 If your system restarts, you will need to rerun the install script by typing the following:
 
 ```su root``` [If not root already]
+
 ```./install.sh```
 
 From there, you should be able to smoothly sail through the normal OpenShift installation process. At the end of using this script, you should have a fully functional OpenShift broker or node.
